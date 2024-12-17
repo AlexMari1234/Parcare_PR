@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem de Parcare - Simulare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='index.js') }}" defer></script>
+</head>
+<body>
+    <h1>Sistem de Parcare - Simulare</h1>
+    <div class="parking-lots">
+        <div>
+            <div id="P1-time" class="time"> </div>
+            <div id="P1" class="lot">P1</div>
+        </div>
+        <div>
+            <div id="P2-time" class="time"> </div>
+            <div id="P2" class="lot">P2</div>
+        </div>
+        <div>
+            <div id="P3-time" class="time"> </div>
+            <div id="P3" class="lot">P3</div>
+        </div>
+    </div>
+    <h2 style="text-align: center;">Notificări</h2>
+    <div id="notifications" class="notifications">
+        <!-- Notificările apar aici -->
+    </div>
+</body>
+</html>
