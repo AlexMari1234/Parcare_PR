@@ -1,8 +1,9 @@
-let lastFreeSpots = -1;
-let lastOccupancyTimes = [0, 0, 0];
+let lastLedStates = [0, 0, 0]; // Ultima stare a LED-urilor (ocupat/liber)
+let lastOccupancyTimes = [0, 0, 0]; // Ultimele timpuri de ocupare
+let finalOccupancyTimes = [0, 0, 0]; // Timpurile finale pentru notificări
 
 document.addEventListener("DOMContentLoaded", () => {
-    fetchData(); 
+    setInterval(fetchData, 2000); // Solicită date la fiecare 2 secunde
 });
 
 function fetchData() {
@@ -10,68 +11,61 @@ function fetchData() {
         .then(response => {
             if (response.status === 204) {
                 console.log("No changes detected.");
-                return null; 
+                return null;
             }
             return response.json();
         })
         .then(json => {
             if (json && json.data) {
-                const freeSpots = json.data.free_spots;
-                const occupancyTimes = json.data.occupancy_times;
-
-                
-                if (freeSpots !== lastFreeSpots || JSON.stringify(occupancyTimes) !== JSON.stringify(lastOccupancyTimes)) {
-                    lastFreeSpots = freeSpots;
-                    lastOccupancyTimes = occupancyTimes;
-                    updateParkingLots(freeSpots, occupancyTimes);
-                }
+                updateParkingLots(json.data);
             }
         })
         .catch(err => console.error("Error fetching data:", err));
 }
 
-function updateParkingLots(freeSpots, occupancyTimes) {
+function updateParkingLots(data) {
     const lots = ["P1", "P2", "P3"];
     const notifications = document.getElementById('notifications');
-    let currentSpots = freeSpots;
 
     lots.forEach((lot, index) => {
         const element = document.getElementById(lot);
         const timeElement = document.getElementById(`${lot}-time`);
+        const isOccupied = data.led_states[index] === 1;
 
-        if (currentSpots > 0) {
-            if (!element.classList.contains("free")) {
-                element.className = "lot free";
-                element.textContent = `${lot} - Liber`;
+        // Actualizează starea vizuală a locurilor
+        element.className = isOccupied ? "lot occupied" : "lot free";
+        element.textContent = `${lot} - ${isOccupied ? "Ocupat" : "Liber"}`;
+        timeElement.textContent = isOccupied ? `Ocupat de ${data.occupancy_times[index]} secunde` : "";
 
-                timeElement.textContent = ""; // Ștergem timpul când e liber
-
-                const notif = document.createElement("div");
-                notif.className = "notification";
-                notif.textContent = `${lot} este acum liber.`;
-                notifications.appendChild(notif);
-            }
-            currentSpots--;
-        } else {
-            if (!element.classList.contains("occupied")) {
-                element.className = "lot occupied";
-                element.textContent = `${lot} - Ocupat`;
-
-                timeElement.textContent = `Ocupat de ${occupancyTimes[index]} secunde`;
-
-                const notif = document.createElement("div");
-                notif.className = "notification";
-                notif.textContent = `${lot} a fost ocupat (${occupancyTimes[index]} sec).`;
-                notifications.appendChild(notif);
-            }
+        // Gestionarea notificărilor și timpului final de ocupare
+        if (isOccupied && lastLedStates[index] === 0) {
+            // Locul a devenit ocupat
+            addNotification(`${lot} a devenit ocupat.`);
+        } else if (!isOccupied && lastLedStates[index] === 1) {
+            // Locul a devenit liber
+            finalOccupancyTimes[index] = lastOccupancyTimes[index]; // Reține ultima valoare
+            addNotification(`${lot} a fost ocupat timp de ${finalOccupancyTimes[index]} secunde.`);
         }
+
+        // Actualizează timpul ocupat pentru afișare continuă
+        if (isOccupied) {
+            lastOccupancyTimes[index] = data.occupancy_times[index];
+        }
+
+        // Actualizează starea curentă
+        lastLedStates[index] = isOccupied ? 1 : 0;
     });
 
-    
+    // Limităm notificările la ultimele 5
     while (notifications.children.length > 5) {
         notifications.removeChild(notifications.firstChild);
     }
 }
 
-
-setInterval(fetchData, 2000);
+function addNotification(message) {
+    const notifications = document.getElementById('notifications');
+    const notif = document.createElement("div");
+    notif.className = "notification";
+    notif.textContent = message;
+    notifications.appendChild(notif);
+}
