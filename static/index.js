@@ -3,7 +3,7 @@ let lastOccupancyTimes = [0, 0, 0]; // Ultimele timpuri de ocupare
 let finalOccupancyTimes = [0, 0, 0]; // Timpurile finale pentru notificări
 
 document.addEventListener("DOMContentLoaded", () => {
-    setInterval(fetchData, 2000); // Solicită date la fiecare 2 secunde
+    setInterval(fetchData, 500); // Solicită date la fiecare 2 secunde
 });
 
 function fetchData() {

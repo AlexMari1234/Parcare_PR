@@ -7,7 +7,7 @@ from flask import Flask, render_template, jsonify, make_response
 app = Flask(__name__)
 
 # Serial communication
-arduino = serial.Serial(port='COM4', baudrate=9600, timeout=1)
+arduino = serial.Serial(port='COM4', baudrate=9600, timeout=0.1)
 
 # Close serial port when exiting
 def close_serial():
@@ -58,4 +58,6 @@ def get_data():
     return make_response("", 204)
 
 if __name__ == '__main__':
-    app.run()
+    # Load SSL context
+    context = ('cert.pem', 'key.pem')  # Certificatul și cheia privată
+    app.run(ssl_context=context, host='0.0.0.0', port=443)  # HTTPS pe portul 443
