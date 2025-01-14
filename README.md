@@ -99,3 +99,91 @@ Sistemul utilizeaza o topologie star (stea):
 #### Alegerea Protocoalelor de Comunicare
 1. **MQTT**: Protocol usor pentru comunicatia intre ESP32 si backend, ideal pentru transmisii in timp real cu consum redus de resurse.
 2. **HTTPS/TLS**: Folosit pentru securizarea comunicatiei intre aplicatia web si backend.
+
+## Implementare
+
+### Sistem de Autentificare si Control Acces
+- **Acces cu RFID:** Utilizatorii trebuie sa scaneze un card RFID utilizand cititorul MFRC-522. Cardul este verificat pentru a vedea daca UID-ul sau este valid si autorizat. 
+  - Daca este autorizat, se afiseaza pe LCD mesajul "Authorized Access," iar bariera controlata de un servo motor SG90 se ridica la 90 de grade.
+  - Dupa 5 secunde, bariera revine automat in pozitia initiala.
+  - In cazul unui card neautorizat, pe LCD apare mesajul "Access Denied."
+
+- **Buton manual:** Pentru iesirea din parcare, utilizatorul poate apasa un buton fizic care declanseaza ridicarea barierei pentru 5 secunde.
+
+### Detectare si Monitorizare Locuri
+- **Senzori Ultrasonici HC-SR04:**
+  - Plasati pe fiecare loc de parcare, acestia detecteaza prezenta vehiculelor masurand distanta.
+  - Daca distanta este mai mica de 8 cm, locul este considerat ocupat.
+  
+- **LED-uri:**
+  - **Rosu:** Locul este ocupat.
+  - **Verde:** Locul este liber.
+  - LED-urile sunt actualizate in timp real pe baza datelor primite de la senzori.
+
+- **LCD I2C:**
+  - Afiseaza numarul de locuri libere in timp real.
+
+### Integrare Backend
+- **Trimitere Date:** Codul Arduino trimite periodic datele colectate catre backend-ul scris in Python (Flask) prin comunicatie seriala.
+  - **Date transmise:**
+    - Starea LED-urilor (1 pentru ocupat, 0 pentru liber).
+    - Numarul de secunde in care locurile au fost ocupate.
+
+- **Procesare Backend:**
+  - Backend-ul primeste datele printr-o ruta dedicata (`/update-data`).
+  - Datele sunt stocate si puse la dispozitia frontend-ului pentru vizualizare.
+
+---
+
+## Vizualizare si Procesare de Date
+
+### Fluxul Datelor
+1. **Trimitere:** Arduino transmite datele in format JSON catre backend.
+2. **Stocare:** Backend-ul preia si stocheaza datele despre locurile de parcare: starea LED-urilor, timpul de ocupare si numarul de locuri libere.
+3. **Actualizare Frontend:**
+   - Frontend-ul (scris in JavaScript) preia aceste date la fiecare 500 ms printr-un endpoint (`/data`).
+   - Starea locurilor este afisata in timp real utilizand elemente HTML si CSS.
+
+### Functionalitati Vizuale
+- **LED-uri Virtuale:** 
+  - Fiecare loc de parcare este reprezentat vizual pe interfata web. 
+  - Locurile ocupate sunt afisate cu textul "Occupat," iar cele libere cu "Liber"
+
+- **Notificari:**
+  - Cand starea unui loc de parcare se schimba:
+    - Daca devine ocupat, se afiseaza notificarea "P1 a devenit ocupat."
+    - Daca devine liber, se afiseaza notificarea "P1 a fost ocupat timp de X secunde."
+  - Doar ultimele 5 notificari sunt afisate in partea de sus a interfetei.
+
+- **Timp Real:**
+  - Datele primite includ timpul total de ocupare pentru fiecare loc. Acest timp este afisat live pe interfata, fiind actualizat continuu.
+
+---
+
+## Securitate
+
+### Implementari Locale
+- **SSL pe Localhost:**
+  - Serverul local Flask a fost configurat sa utilizeze certificare SSL.
+  - Certificatul `cert.pem` si cheia privata `key.pem` sunt utilizate pentru securizarea comunicatiei intre backend si frontend atunci cand serverul ruleaza local.
+
+### Hostare in Cloud
+- **Heroku:**
+  - Backend-ul este hostat pe platforma Heroku, utilizand HTTPS pentru securizarea conexiunilor. Datele transmise intre scriptul local si server sunt criptate.
+
+- **Trimitere Date:**
+  - Un script Python ruleaza local pentru a citi datele de la Arduino si le trimite catre backend-ul hostat pe Heroku printr-un endpoint securizat.
+
+### Planuri pentru Dezvoltare Ulterioara
+- **Trecerea la MQTT:**
+  - In versiunea finala, Arduino va fi inlocuit de ESP32, utilizand protocolul MQTT pentru comunicare.
+  - ESP32 va transmite datele prin Wi-Fi catre un broker MQTT, care va fi configurat pentru a interactiona cu backend-ul.
+
+- **Autentificare:**
+  - Implementarea autentificarii pentru utilizatorii dashboard-ului web, pentru a limita accesul doar la utilizatorii autorizati.
+
+### Testare si Validare
+- Testarea fluxului de date intre senzori si backend a fost realizata utilizand conexiunea seriala si endpoint-uri REST.
+  - Datele au fost verificate pentru consistenta si actualizare in timp real.
+- Sistemul de alertare a fost validat prin simulari hardware si vizualizarea notificarilor pe frontend.
+
