@@ -1,9 +1,9 @@
-let lastLedStates = [0, 0, 0]; // Ultima stare a LED-urilor (ocupat/liber)
-let lastOccupancyTimes = [0, 0, 0]; // Ultimele timpuri de ocupare
-let finalOccupancyTimes = [0, 0, 0]; // Timpurile finale pentru notificări
+let lastLedStates = [0, 0, 0]; // The last state of the LEDs (occupied/free)
+let lastOccupancyTimes = [0, 0, 0]; // The last occupancy times
+let finalOccupancyTimes = [0, 0, 0]; // Final occupancy times for notifications
 
 document.addEventListener("DOMContentLoaded", () => {
-    setInterval(fetchData, 500); // Solicită date la fiecare 2 secunde
+    setInterval(fetchData, 500); // Fetch data every 500 milliseconds
 });
 
 function fetchData() {
@@ -32,31 +32,31 @@ function updateParkingLots(data) {
         const timeElement = document.getElementById(`${lot}-time`);
         const isOccupied = data.led_states[index] === 1;
 
-        // Actualizează starea vizuală a locurilor
+        // Update the visual state of the parking spots
         element.className = isOccupied ? "lot occupied" : "lot free";
-        element.textContent = `${lot} - ${isOccupied ? "Ocupat" : "Liber"}`;
-        timeElement.textContent = isOccupied ? `Ocupat de ${data.occupancy_times[index]} secunde` : "";
+        element.textContent = `${lot} - ${isOccupied ? "Occupied" : "Free"}`;
+        timeElement.textContent = isOccupied ? `Occupied for ${data.occupancy_times[index]} seconds` : "";
 
-        // Gestionarea notificărilor și timpului final de ocupare
+        // Handle notifications and final occupancy time
         if (isOccupied && lastLedStates[index] === 0) {
-            // Locul a devenit ocupat
-            addNotification(`${lot} a devenit ocupat.`);
+            // The spot has become occupied
+            addNotification(`${lot} is now occupied.`);
         } else if (!isOccupied && lastLedStates[index] === 1) {
-            // Locul a devenit liber
-            finalOccupancyTimes[index] = lastOccupancyTimes[index]; // Reține ultima valoare
-            addNotification(`${lot} a fost ocupat timp de ${finalOccupancyTimes[index]} secunde.`);
+            // The spot has become free
+            finalOccupancyTimes[index] = lastOccupancyTimes[index]; // Store the last value
+            addNotification(`${lot} was occupied for ${finalOccupancyTimes[index]} seconds.`);
         }
 
-        // Actualizează timpul ocupat pentru afișare continuă
+        // Update the occupancy time for continuous display
         if (isOccupied) {
             lastOccupancyTimes[index] = data.occupancy_times[index];
         }
 
-        // Actualizează starea curentă
+        // Update the current state
         lastLedStates[index] = isOccupied ? 1 : 0;
     });
 
-    // Limităm notificările la ultimele 5
+    // Limit notifications to the last 5
     while (notifications.children.length > 5) {
         notifications.removeChild(notifications.firstChild);
     }
