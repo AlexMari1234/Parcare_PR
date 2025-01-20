@@ -1,189 +1,198 @@
-# Sistem de Parcare Rezidentiala Inteligent IoT
+# Sistem de Parcare Rezidentiala Inteligenta IoT - Marinescu Alexandru Gabriel 343C1
 
-## README.md
+## Rezumat
+Acest proiect implementeaza un sistem de parcare inteligent destinat unei parcari rezidentiale mici, utilizand tehnologie IoT si conectivitate cloud. Solutia integreaza hardware-ul local bazat pe ESP32 si Arduino, senzori ultrasonici, un sistem de autentificare RFID, un backend Python, si un frontend interactiv pentru vizualizarea si gestionarea parcarii.
 
-### Rezumat
-Acest proiect implementeaza un sistem de parcare inteligent destinat unei parcari rezidentiale mici, utilizand tehnologie IoT si conectivitate cloud. Solutia include un microcontroller ESP32 pentru gestionarea hardware-ului local si un backend gazduit in cloud pentru procesarea datelor si gestionarea rezervarilor. Utilizatorii pot accesa parcarea prin scanarea unui card RFID si pot rezerva locuri de parcare in timp real prin intermediul unei aplicatii web. Sistemul integreaza senzori ultrasonici, LED-uri, un ecran LCD si un servo motor pentru o interactiune eficienta si clara cu utilizatorii.
+Ideea proiectului este urmatoarea: Un "sofer" vrea sa vina sa isi parcheze masina si isi scaneaza cartela RFID atunci cand intra in parcare. Daca este scanat un ID respectiv, bariera se ridica la 90 de grade timp de 5 secunde, dupa care revine in pozitia initiala. In parcare sunt 3 locuri de parcare si pe un ecran LCD se afiseaza numarul total de locuri libere din parcare. Pentru a detecta daca un loc este ocupat sau liber se folosesc senzori de proximitate care detecteaza daca un obiect este la maxim 8 cm, atunci acel loc este ocupat. De asemenea, acest lucru este dat si prin leduri care se aprind daca un loc este ocupat. Cand masina vrea sa iasa din parcare apasa un buton care ridica bariera similar ca la intrare 5 secunde la 90 de grade, dupa care revine in pozitia initiala. Arhitectura hardware este conceputa pe ARDUINO UNO, care comunica cu ESP32 prin interfata seriala, prin UART, dupa acesta prin wifi transmite datele la backend prin mqtt broker intr-un json cu numarul de locuri libere, cat timp au fost ocupate si starea lor. La frontend se transmit aceste date pentru a putea fi procesate si la notificari si la grafic.
 
-### Caracteristici
-- **Autentificare RFID**: Accesul utilizatorilor in parcare se face prin scanarea unui card RFID autorizat.
-- **Gestionare locuri de parcare**: Monitorizarea si gestionarea locurilor in timp real, afisand starea fiecarui loc (liber, rezervat, ocupat).
-- **Rezervare prin aplicatie web**: Utilizatorii pot rezerva locuri de parcare printr-un dashboard web.
-- **Feedback vizual**: LED-uri care indica starea locurilor de parcare si un ecran LCD pentru informatii in timp real.
-- **Control securizat**: Blocarea accesului daca parcarea este plina sau cardul nu este autorizat.
-
-### Componentele Sistemului
-#### Hardware:
-- **ESP32**: Microcontroller principal cu conectivitate Wi-Fi.
-- **Cititor RFID MFRC-522**: Pentru autentificarea utilizatorilor la intrarea in parcare.
-- **Senzori Ultrasonici HC-SR04**: Pentru detectarea prezentei vehiculelor in locurile de parcare.
-- **Servo Motor SG90**: Pentru controlul barierei de acces.
-- **LCD I2C (16x2)**: Pentru afisarea informatiilor legate de starea locurilor si a mesajelor de sistem.
-- **LED-uri**: Indica vizual starea locurilor de parcare (verde = liber, galben = rezervat, rosu = ocupat).
-- **Buton Push**: Pentru ridicarea manuala a barierei la iesire.
-
-#### Software:
-- **Cod ESP32**: Gestionarea senzorilor, controlul barierei si comunicatia cu backend-ul prin MQTT.
-- **Backend Python (FastAPI)**: Logica serverului pentru gestionarea rezervarilor, autentificarii si monitorizarii starii locurilor.
-- **Frontend React**: Dashboard web pentru utilizatori si administratori.
-
-### Fluxul de Functionare
-1. **Autentificare la intrare**:
-   - Utilizatorul scaneaza cardul RFID la bariera.
-   - Sistemul verifica cardul in baza de date si statusul locurilor de parcare.
-   - Bariera se ridica daca utilizatorul are acces si exista un loc disponibil.
-2. **Monitorizare locuri**:
-   - Senzorii ultrasonici detecteaza vehiculele si actualizeaza starea locurilor in timp real.
-   - Statusurile sunt afisate pe LCD si actualizate in aplicatia web.
-3. **Rezervare prin aplicatie web**:
-   - Utilizatorul acceseaza dashboard-ul pentru a vedea locurile disponibile.
-   - Rezerva un loc introducand UID-ul cardului RFID si selectand locul dorit.
-   - Locul devine rezervat si LED-ul asociat se aprinde galben.
-4. **Blocare acces daca parcarea este plina**:
-   - Daca toate locurile sunt ocupate sau rezervate, accesul este refuzat si utilizatorul este informat prin mesaj pe LCD.
+## Caracteristici
+- **Autentificare RFID**: Permite accesul utilizatorilor autorizati prin scanarea unui card RFID.
+- **Monitorizare locuri de parcare**: Urmareste ocuparea locurilor in timp real si afiseaza informatii pe LCD.
+- **Rezervari online**: Interfata web permite utilizatorilor sa rezerve locuri de parcare.
+- **Control si notificari**: Gestioneaza bariera de acces si trimite notificari despre statusul locurilor.
+- **Vizualizare date**: Graficul afiseaza timpul total liber si ocupat al fiecarui loc.
+- **Securitate**: Comunicarea este protejata prin protocoale TLS/SSL.
 
 ---
 
-## Documentatie Preliminara
+## Introducere
 
-### 1. Introducere
+### Scopul proiectului
+Proiectul isi propune sa rezolve problema gestionarii eficiente a accesului si a locurilor de parcare intr-un spatiu rezidential mic. Utilizand tehnologia IoT, sistemul ofera:
+- Acces sigur prin RFID.
+- Monitorizare si vizualizare in timp real.
+- Rezervari online pentru locuri.
 
-#### Scopul Proiectului
-Proiectul urmareste dezvoltarea unui sistem de parcare inteligent pentru gestionarea eficienta a accesului si a locurilor intr-o parcare rezidentiala. Utilizand tehnologia IoT, sistemul ofera o solutie moderna pentru monitorizarea si controlul parcarii, reducand timpul necesar pentru gasirea unui loc si asigurand securitatea accesului.
-
-#### Obiective
-- Implementarea unui sistem de autentificare prin RFID.
-- Monitorizarea si gestionarea in timp real a locurilor de parcare.
-- Dezvoltarea unei aplicatii web pentru rezervarea si vizualizarea statusului locurilor.
-- Securizarea comunicatiei intre componente folosind protocoale criptate (TLS).
-- Afișarea informatiilor relevante pentru utilizatori prin LCD si LED-uri.
+### Obiective
+- Dezvoltarea unui sistem hardware bazat pe senzori si actuatori.
+- Implementarea unui backend securizat si a unui dashboard web.
+- Vizualizarea datelor si generarea de notificari.
 
 ---
 
-### 2. Arhitectura
+## Arhitectura
 
-#### Descriere Generala a Sistemului
-Sistemul este alcatuit din urmatoarele componente principale:
+### Componente hardware
 
-1. **Hardware**:
-   - **ESP32**: Responsabil pentru gestionarea senzorilor, controlul barierei si conectivitatea cu backend-ul.
-   - **RFID MFRC-522**: Detecteaza UID-ul cardurilor pentru autentificarea utilizatorilor.
-   - **Senzori Ultrasonici HC-SR04**: Detecteaza prezenta vehiculelor in locurile de parcare.
-   - **Servo Motor SG90**: Controleaza ridicarea si coborarea barierei.
-   - **LCD I2C (16x2)**: Afiseaza informatii despre locurile disponibile si mesaje pentru utilizatori.
-   - **LED-uri**: Indicatori vizuali ai starii locurilor (liber, rezervat, ocupat).
+1. **ESP32**: Microcontroller principal pentru conectivitate Wi-Fi si comunicare MQTT.
+2. **Arduino Uno**: Gestionarea senzorilor ultrasonici si a actuatorilor.
+3. **Senzori Ultrasonici HC-SR04**: Detecteaza ocuparea locurilor de parcare.
+   - **Senzor 1**:
+     - Trig -> Pin digital 7
+     - Echo -> Pin digital 8
+   - **Senzor 2**:
+     - Trig -> Pin analogic A0
+     - Echo -> Pin analogic A1
+   - **Senzor 3**:
+     - Trig -> Pin analogic A2
+     - Echo -> Pin analogic A3
+   - Toti senzorii:
+     - VCC -> 5V
+     - GND -> GND
+4. **RFID MFRC-522**: Permite autentificarea utilizatorilor prin UID-ul cardurilor RFID.
+   - SDA (SS) -> Pin digital 10
+   - SCK -> Pin digital 13
+   - MOSI -> Pin digital 11
+   - MISO -> Pin digital 12
+   - RST -> Pin digital 9
+   - VCC -> 3.3V
+   - GND -> GND
+5. **Servo Motor SG90**: Controleaza bariera de acces.
+   - Control -> Pin digital 3 (PWM)
+   - VCC -> 5V
+   - GND -> GND
+6. **LCD I2C (20x4)**:
+   - SDA -> Pin analogic A4
+   - SCL -> Pin analogic A5
+   - VCC -> 5V
+   - GND -> GND
+7. **LED-uri**:
+   - LED 1: Anod -> Pin digital 4, Catod -> GND prin rezistor de 220Ω
+   - LED 2: Anod -> Pin digital 5, Catod -> GND prin rezistor de 220Ω
+   - LED 3: Anod -> Pin digital 6, Catod -> GND prin rezistor de 220Ω
+8. **Buton manual**:
+   - Un pin al butonului -> GND
+   - Celalalt pin al butonului -> Pin digital 2 (cu un rezistor pull-up de 10kΩ la 5V).
 
-2. **Software**:
-   - **ESP32 Firmware**: Cod pentru gestionarea senzorilor, controlul barierei si comunicatia cu backend-ul prin MQTT.
-   - **Backend Python (FastAPI)**: Logica aplicatiei pentru autentificare, rezervari si procesare de date.
-   - **Frontend React**: Dashboard pentru utilizatori si administratori.
+### Diagrama conexiunilor hardware
+Adaugarea acestei diagrame poate ajuta la o mai buna vizualizare a conexiunilor fizice. Vom include o diagrama ilustrativa care arata cum sunt conectate modulele la Arduino si ESP32.
 
-3. **Rețea**:
-   - **Wi-Fi**: Comunicatia dintre ESP32 si backend.
-   - **MQTT**: Protocol pentru transmiterea datelor intre ESP32 si backend.
-   - **HTTPS**: Securizarea comunicatiei intre frontend si backend.
+### Topologia retelei
+Sistemul urmeaza o arhitectura de tip stea:
+- **ESP32** ca nod central conectat la backend.
+- **Backend Python** gazduit local sau in cloud pentru procesarea datelor.
+- **Frontend web** pentru vizualizare.
 
-#### Fluxul de Date
-1. Utilizatorul scaneaza cardul RFID.
-2. ESP32 trimite UID-ul catre backend prin MQTT.
-3. Backend-ul valideaza cardul si verifica statusul locurilor in baza de date.
-4. Daca accesul este permis, ESP32 ridica bariera si actualizeaza statusul locului rezervat sau liber.
-5. Datele despre statusul locurilor sunt afisate pe LCD si actualizate in dashboard-ul web.
+### Protocoale de comunicatie
+1. **MQTT**: Utilizat pentru comunicare eficienta in timp real intre ESP32 si backend.
+2. **HTTPS**: Protejeaza datele transmise intre frontend si backend.
+3. **UART**: Comunica intre Arduino si ESP32 pentru schimb de date hardware.
 
-#### Topologia Rețelei
-Sistemul utilizeaza o topologie star (stea):
-- **ESP32** este nodul care gestioneaza toate componentele hardware si comunica cu backend-ul.
-- **Backend-ul** este gazduit in cloud si serveste ca punct central pentru procesarea datelor si gestionarea rezervarilor.
-- **Frontend-ul** este accesibil printr-un browser si afiseaza informatii in timp real.
+### Detalii despre comunicarea seriala (UART)
+ESP32 si Arduino comunica prin pinii RX si TX:
+- RX (ESP32) -> TX (Arduino)
+- TX (ESP32) -> RX (Arduino)
+- Baud Rate: 9600 bps
+- Date transmise: JSON care include:
+  - Numarul de locuri libere.
+  - Timpul total ocupat pentru fiecare loc.
+  - Starea LED-urilor (0 pentru liber, 1 pentru ocupat).
 
-#### Alegerea Protocoalelor de Comunicare
-1. **MQTT**: Protocol usor pentru comunicatia intre ESP32 si backend, ideal pentru transmisii in timp real cu consum redus de resurse.
-2. **HTTPS/TLS**: Folosit pentru securizarea comunicatiei intre aplicatia web si backend.
+---
 
 ## Implementare
 
-### Sistem de Autentificare si Control Acces
-- **Acces cu RFID:** Utilizatorii trebuie sa scaneze un card RFID utilizand cititorul MFRC-522. Cardul este verificat pentru a vedea daca UID-ul sau este valid si autorizat. 
-  - Daca este autorizat, se afiseaza pe LCD mesajul "Authorized Access," iar bariera controlata de un servo motor SG90 se ridica la 90 de grade.
-  - Dupa 5 secunde, bariera revine automat in pozitia initiala.
-  - In cazul unui card neautorizat, pe LCD apare mesajul "Access Denied."
+### Configurare hardware
+1. **Montarea senzorilor ultrasonici**
+   - Amplasati senzori HC-SR04 in pozitii strategice pe fiecare loc de parcare.
+   - Calibrati senzorii pentru a detecta distante sub 8 cm ca "ocupat".
 
-- **Buton manual:** Pentru iesirea din parcare, utilizatorul poate apasa un buton fizic care declanseaza ridicarea barierei pentru 5 secunde.
+2. **Conectarea servo motorului**
+   - Conectati servo-ul la pinul digital 3 al Arduino.
+   - Configurati pozitiile 0° (coborat) si 90° (ridicat).
 
-### Detectare si Monitorizare Locuri
-- **Senzori Ultrasonici HC-SR04:**
-  - Plasati pe fiecare loc de parcare, acestia detecteaza prezenta vehiculelor masurand distanta.
-  - Daca distanta este mai mica de 8 cm, locul este considerat ocupat.
-  
-- **LED-uri:**
-  - **Rosu:** Locul este ocupat.
-  - **Verde:** Locul este liber.
-  - LED-urile sunt actualizate in timp real pe baza datelor primite de la senzori.
+3. **Integrarea RFID**
+   - Conectati cititorul RFID la pinii SPI (SS: 10, RST: 9).
+   - Configurati UID-urile autorizate in cod.
 
-- **LCD I2C:**
-  - Afiseaza numarul de locuri libere in timp real.
+4. **Configurare ESP32**
+   - Conectati RX/TX la Arduino.
+   - Configurati reteaua Wi-Fi si broker-ul MQTT.
 
-### Integrare Backend
-- **Trimitere Date:** Codul Arduino trimite periodic datele colectate catre backend-ul scris in Python (Flask) prin comunicatie seriala.
-  - **Date transmise:**
-    - Starea LED-urilor (1 pentru ocupat, 0 pentru liber).
-    - Numarul de secunde in care locurile au fost ocupate.
+5. **Configurare LCD**
+   - Conectati SDA si SCL la pinii A4 si A5.
+   - Configurati libraria LiquidCrystal_I2C pentru afisare text.
 
-- **Procesare Backend:**
-  - Backend-ul primeste datele printr-o ruta dedicata (`/update-data`).
-  - Datele sunt stocate si puse la dispozitia frontend-ului pentru vizualizare.
+### Configurare software
+1. **Arduino**:
+   - Codul colecteaza datele de la senzori, controleaza LED-urile si bariera.
+   - Trimite date in format JSON prin seriala catre ESP32.
+2. **ESP32**:
+   - Preia datele de la Arduino si le publica pe broker-ul MQTT.
+3. **Backend Python**:
+   - Flask gestioneaza endpoint-uri pentru frontend.
+   - Stocheaza datele primite de la MQTT.
+4. **Frontend JavaScript**:
+   - Afiseaza datele in timp real folosind Chart.js pentru grafice.
 
 ---
 
-## Vizualizare si Procesare de Date
+## Vizualizare si procesare de date
 
-### Fluxul Datelor
-1. **Trimitere:** Arduino transmite datele in format JSON catre backend.
-2. **Stocare:** Backend-ul preia si stocheaza datele despre locurile de parcare: starea LED-urilor, timpul de ocupare si numarul de locuri libere.
-3. **Actualizare Frontend:**
-   - Frontend-ul (scris in JavaScript) preia aceste date la fiecare 500 ms printr-un endpoint (`/data`).
-   - Starea locurilor este afisata in timp real utilizand elemente HTML si CSS.
+### Interfata web
+- **Sectiuni principale**:
+  1. Status locuri: Liber/Ocupat.
+  2. Notificari: Afiseaza ultimele 5 schimbari in timp real (daca se trece din liber in ocupat se scrie P1 a devenit ocupat; daca se trece din ocupat in liber se scrie P1 a fost ocupat timp de X secunde; daca parcarea devine plina, adica toate locurile sunt ocupate, atunci se scrie Parcarea este plina).
+  3. Grafic: Timp liber vs. ocupat pentru fiecare loc.
 
-### Functionalitati Vizuale
-- **LED-uri Virtuale:** 
-  - Fiecare loc de parcare este reprezentat vizual pe interfata web. 
-  - Locurile ocupate sunt afisate cu textul "Occupat," iar cele libere cu "Liber"
+### Detalii despre grafice
+1. **Bar Chart**:
+   - Etichete: P1, P2, P3 (locurile de parcare).
+   - Doua seturi de date:
+     - Timp liber (verde).
+     - Timp ocupat (rosu).
+     Acestea se actualizeaza real-time si numarul de secunde de pe axa OY creste fie la liber fie la ocupat in functie de starea ledului.
 
-- **Notificari:**
-  - Cand starea unui loc de parcare se schimba:
-    - Daca devine ocupat, se afiseaza notificarea "P1 a devenit ocupat."
-    - Daca devine liber, se afiseaza notificarea "P1 a fost ocupat timp de X secunde."
-  - Doar ultimele 5 notificari sunt afisate in partea de sus a interfetei.
+2. **Line Chart**:
+   - Afiseaza starea fiecarui loc in timp real.
+   - Axe:
+     - X: Ora actuala.
+     - Y: Stare (0 pentru liber, 1 pentru ocupat).
 
-- **Timp Real:**
-  - Datele primite includ timpul total de ocupare pentru fiecare loc. Acest timp este afisat live pe interfata, fiind actualizat continuu.
+### Procesare date
+1. **Backend**:
+   - Parseaza JSON-ul primit prin MQTT.
+   - Calculeaza timpul total liber si ocupat pentru fiecare loc.
+2. **Frontend**:
+   - Utilizeaza datele pentru a actualiza vizualizarile in timp real.
+   - Limiteaza notificarile la ultimele 5 evenimente.
 
 ---
 
 ## Securitate
 
-### Implementari Locale
-- **SSL pe Localhost:**
-  - Serverul local Flask a fost configurat sa utilizeze certificare SSL.
-  - Certificatul `cert.pem` si cheia privata `key.pem` sunt utilizate pentru securizarea comunicatiei intre backend si frontend atunci cand serverul ruleaza local.
+1. **SSL/TLS**:
+   - Backend-ul utilizeaza certificat TLS pentru securizarea comunicatiei cu frontend-ul.
+2. **Autorizare**:
+   - UID-urile RFID sunt verificate local si prin backend.
 
-### Hostare in Cloud
-- **Heroku:**
-  - Backend-ul este hostat pe platforma Heroku, utilizand HTTPS pentru securizarea conexiunilor. Datele transmise intre scriptul local si server sunt criptate.
+---
 
-- **Trimitere Date:**
-  - Un script Python ruleaza local pentru a citi datele de la Arduino si le trimite catre backend-ul hostat pe Heroku printr-un endpoint securizat.
+## Testare
 
-### Planuri pentru Dezvoltare Ulterioara
-- **Trecerea la MQTT:**
-  - In versiunea finala, Arduino va fi inlocuit de ESP32, utilizand protocolul MQTT pentru comunicare.
-  - ESP32 va transmite datele prin Wi-Fi catre un broker MQTT, care va fi configurat pentru a interactiona cu backend-ul.
+1. **Hardware**:
+   - Testati functionarea senzorilor ultrasonici folosind valori de test.
+   - Verificati comportamentul servo motorului pentru ridicare/coborare bariera.
+2. **Software**:
+   - Simulati fluxurile de date in backend pentru a valida procesarea.
+   - Verificati frontend-ul pentru afisarea corecta a datelor.
+3. **Parcare plina**:
+   - Simulati ocuparea tuturor locurilor pentru a valida afisarea mesajului "Parcarea este plina" in dashboard.
 
-- **Autentificare:**
-  - Implementarea autentificarii pentru utilizatorii dashboard-ului web, pentru a limita accesul doar la utilizatorii autorizati.
+---
 
-### Testare si Validare
-- Testarea fluxului de date intre senzori si backend a fost realizata utilizand conexiunea seriala si endpoint-uri REST.
-  - Datele au fost verificate pentru consistenta si actualizare in timp real.
-- Sistemul de alertare a fost validat prin simulari hardware si vizualizarea notificarilor pe frontend.
+## Concluzii
+Proiectul Sistem de Parcare Rezidentiala Inteligenta demonstreaza cum tehnologiile IoT pot fi aplicate pentru a rezolva probleme de zi cu zi. Sistemul asigura gestionarea eficienta a locurilor de parcare, ofera o interfata prietenoasa pentru utilizatori si securitate sporita pentru datele transmise.
+
+---
 

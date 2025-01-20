@@ -50,3 +50,10 @@ h1 {
     margin: 5px 0;
     font-size: 14px;
 }
+
+#status-message {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+    text-align: center;
+}

@@ -5,27 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem de Parcare - Simulare</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="{{ url_for('static', filename='index.js') }}" defer></script>
 </head>
 <body>
     <h1>Sistem de Parcare - Simulare</h1>
+
+    <!-- Mesaj despre statusul parcării -->
+    <div id="status-message" style="text-align: center; font-size: 18px; font-weight: bold; color: green; margin-top: 10px;">
+        Sunt 3 locuri libere.
+    </div>
+
+    <!-- Locurile de parcare -->
     <div class="parking-lots">
         <div>
-            <div id="P1-time" class="time"> </div>
-            <div id="P1" class="lot">P1</div>
+            <div id="P1-time" class="time"></div>
+            <div id="P1" class="lot free">P1</div>
         </div>
         <div>
-            <div id="P2-time" class="time"> </div>
-            <div id="P2" class="lot">P2</div>
+            <div id="P2-time" class="time"></div>
+            <div id="P2" class="lot free">P2</div>
         </div>
         <div>
-            <div id="P3-time" class="time"> </div>
-            <div id="P3" class="lot">P3</div>
+            <div id="P3-time" class="time"></div>
+            <div id="P3" class="lot free">P3</div>
         </div>
     </div>
+
+    <!-- Secțiunea de notificări -->
     <h2 style="text-align: center;">Notificări</h2>
     <div id="notifications" class="notifications">
         <!-- Notificările apar aici -->
+    </div>
+
+    <!-- Graficele pentru vizualizarea datelor -->
+    <div style="margin: 30px auto; width: 80%; text-align: center;">
+        <h2>Vizualizare Date</h2>
+        <div style="margin-bottom: 40px;">
+            <canvas id="barChart" style="max-width: 100%; height: 400px;"></canvas>
+        </div>
+        <div>
+            <canvas id="lineChart" style="max-width: 100%; height: 400px;"></canvas>
+        </div>
     </div>
 </body>
 </html>

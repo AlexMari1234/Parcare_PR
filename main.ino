@@ -44,7 +44,7 @@ unsigned long lastActionTime = 0;
 bool isRaised = false;  // To check if the servo is in the raised position
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // Serial pentru ESP32
   SPI.begin();
   mfrc522.PCD_Init();
 
@@ -150,7 +150,7 @@ void handleCardDetection() {
 }
 
 void handleButtonPress() {
-  Serial.println("Button pressed - Raising barrier");
+  Serial.println("{\"event\": \"Button pressed\", \"action\": \"Raising barrier\"}");
   lcd.setCursor(0, 1);
   lcd.print("Manual Access    ");
   raiseServo();
