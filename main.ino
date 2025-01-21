@@ -47,7 +47,7 @@ bool isRaised = false;  // To check if the servo is in the raised position
 int freeSpots = 3; // Number of free parking spots
 
 void setup() {
-  Serial.begin(9600); // Serial pentru ESP32
+  Serial.begin(9600); // Serial for ESP32
   SPI.begin();
   mfrc522.PCD_Init();
 
@@ -133,16 +133,16 @@ void loop() {
 }
 
 void handleCardDetection() {
-  // Verifică dacă parcarea este plină
+  // Check if parking is full
   if (freeSpots == 0) {
     Serial.println("{\"card\": \"Denied\", \"action\": \"Parking full\"}");
     lcd.setCursor(0, 1);
     lcd.print("Parking Full!   ");
-    delay(2000); // Afișează mesajul pentru 2 secunde
-    return; // Nu permite accesul
+    delay(2000); // Display message for 2 seconds
+    return; // Deny access
   }
 
-  // Procesare RFID
+  // Process RFID
   String content = "";
   for (byte i = 0; i < mfrc522.uid.size; i++) {
     content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
@@ -150,12 +150,12 @@ void handleCardDetection() {
   }
   content.toUpperCase();
 
-  if (content.substring(1) == "13 5C 0C 14") { // Card autorizat
+  if (content.substring(1) == "13 5C 0C 14") { // Authorized card
     Serial.println("{\"card\": \"Authorized\", \"action\": \"Access granted\"}");
     lcd.setCursor(0, 1);
     lcd.print("Authorized Access");
     raiseServo();
-  } else { // Card neautorizat
+  } else { // Unauthorized card
     Serial.println("{\"card\": \"Unauthorized\", \"action\": \"Access denied\"}");
     lcd.setCursor(0, 1);
     lcd.print("Access Denied    ");

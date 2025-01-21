@@ -1,20 +1,20 @@
 let lastLedStates = [0, 0, 0]; // Ultima stare a LED-urilor (ocupat/liber)
 let lastOccupancyTimes = [0, 0, 0]; // Ultimele timpuri de ocupare
-let finalOccupancyTimes = [0, 0, 0]; // Timpurile finale pentru notificări
-let wasFull = false; // Indicator dacă parcarea a fost complet ocupată
+let finalOccupancyTimes = [0, 0, 0]; // Timpurile finale pentru notificari
+let wasFull = false; // Indicator daca parcarea a fost complet ocupata
 
-// Vectori pentru timpul total liber și ocupat pentru fiecare loc
+// Vectori pentru timpul total liber si ocupat pentru fiecare loc
 let totalFreeTime = [0, 0, 0];
 let totalOccupiedTime = [0, 0, 0];
 
 document.addEventListener("DOMContentLoaded", () => {
-    setInterval(updateEverything, 1000); // Actualizare sincronizată la fiecare secundă
+    setInterval(updateEverything, 1000); // Actualizare sincronizata la fiecare secunda
 });
 
-// Funcția principală care gestionează toate actualizările
+// Functia principala care gestioneaza toate actualizarile
 function updateEverything() {
-    fetchData(); // Solicită date de la server
-    updateTimes(); // Actualizează timpul liber/ocupat
+    fetchData(); // Solicita date de la server
+    updateTimes(); // Actualizeaza timpul liber/ocupat
 }
 
 function fetchData() {
@@ -37,59 +37,59 @@ function fetchData() {
 function updateParkingLots(data) {
     const lots = ["P1", "P2", "P3"];
     const notifications = document.getElementById('notifications');
-    const statusMessage = document.getElementById('status-message'); // Mesajul general despre parcări
+    const statusMessage = document.getElementById('status-message'); // Mesajul general despre parcari
 
-    let freeSpots = 0; // Numărul de locuri libere
+    let freeSpots = 0; // Numarul de locuri libere
 
     lots.forEach((lot, index) => {
         const element = document.getElementById(lot);
         const timeElement = document.getElementById(`${lot}-time`);
         const isOccupied = data.led_states[index] === 1;
 
-        // Actualizează starea vizuală a locurilor
+        // Actualizeaza starea vizuala a locurilor
         element.className = isOccupied ? "lot occupied" : "lot free";
         element.textContent = `${lot} - ${isOccupied ? "Ocupat" : "Liber"}`;
         timeElement.textContent = isOccupied ? `Ocupat de ${data.occupancy_times[index]} secunde` : "";
 
-        // Calculează locurile libere
+        // Calculeaza locurile libere
         if (!isOccupied) {
             freeSpots++;
         }
 
-        // Gestionarea notificărilor și timpului final de ocupare
+        // Gestionarea notificarilor si timpului final de ocupare
         if (isOccupied && lastLedStates[index] === 0) {
             addNotification(`${lot} a devenit ocupat.`);
         } else if (!isOccupied && lastLedStates[index] === 1) {
-            // Adăugăm 2 secunde la timpul final pentru notificare
+            // Adaugam 2 secunde la timpul final pentru notificare
             finalOccupancyTimes[index] = lastOccupancyTimes[index] + 2; // Offset pentru delay
             addNotification(`${lot} a fost ocupat timp de ${finalOccupancyTimes[index]} secunde.`);
         }
 
-        // Actualizează timpul ocupat pentru afișare continuă
+        // Actualizeaza timpul ocupat pentru afisare continua
         if (isOccupied) {
             lastOccupancyTimes[index] = data.occupancy_times[index];
         }
 
-        // Actualizează starea curentă
+        // Actualizeaza starea curenta
         lastLedStates[index] = isOccupied ? 1 : 0;
     });
 
-    // Afișează notificarea "Parcarea este plină" când toate locurile sunt ocupate
+    // Afiseaza notificarea "Parcarea este plina" cand toate locurile sunt ocupate
     if (freeSpots === 0) {
         if (!wasFull) {
-            addNotification("Parcarea este plină!");
-            statusMessage.textContent = "Parcarea este plină!";
+            addNotification("Parcarea este plina!");
+            statusMessage.textContent = "Parcarea este plina!";
             statusMessage.style.color = "red";
-            wasFull = true; // Marcăm că parcarea este plină
+            wasFull = true; // Marcam ca parcarea este plina
         }
     } else {
-        // Actualizează corect numărul de locuri libere
+        // Actualizeaza corect numarul de locuri libere
         statusMessage.textContent = `Sunt ${freeSpots} locuri libere.`;
         statusMessage.style.color = "green";
-        wasFull = false; // Resetăm dacă parcarea nu mai este plină
+        wasFull = false; // Resetam daca parcarea nu mai este plina
     }
 
-    // Limităm notificările la ultimele 5
+    // Limitam notificarile la ultimele 5
     while (notifications.children.length > 5) {
         notifications.removeChild(notifications.firstChild);
     }
@@ -100,12 +100,12 @@ function updateParkingLots(data) {
 }
 
 function updateTimes() {
-    // Actualizează timpul liber și ocupat pe baza stării curente
+    // Actualizeaza timpul liber si ocupat pe baza starii curente
     lastLedStates.forEach((state, index) => {
         if (state === 0) {
-            totalFreeTime[index] += 1; // Crește timpul liber
+            totalFreeTime[index] += 1; // Creste timpul liber
         } else {
-            totalOccupiedTime[index] += 1; // Crește timpul ocupat
+            totalOccupiedTime[index] += 1; // Creste timpul ocupat
         }
     });
 }
@@ -118,7 +118,7 @@ function addNotification(message) {
     notifications.appendChild(notif);
 }
 
-// Inițializare grafice
+// Initializare grafice
 const barChartCtx = document.getElementById('barChart').getContext('2d');
 const barChart = new Chart(barChartCtx, {
     type: 'bar',
