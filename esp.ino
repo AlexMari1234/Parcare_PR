@@ -2,13 +2,15 @@
 #include <PubSubClient.h>
 
 // Configurație WiFi
-const char* ssid = "RAMCONSULTING";  // Numele rețelei WiFi
-const char* password = "paradmin";  // Parola rețelei WiFi
+const char* ssid = "RAMCONSULTING";         // Numele rețelei WiFi
+const char* password = "paradmin";          // Parola rețelei WiFi
 
-// Configurație broker MQTT
-const char* mqttServer = "192.168.0.21"; // Adresa IP a mașinii pe care rulează Mosquitto
-const int mqttPort = 1883; // Portul pe care Mosquitto ascultă
-const char* mqttTopic = "test/esp32/data"; // Topic-ul pe care se publică mesajele
+// Configurație broker MQTT (Adafruit IO)
+const char* mqttServer = "io.adafruit.com"; // Adresa brokerului Adafruit IO
+const int mqttPort = 1883;                  // Portul pentru conexiuni non-secure
+const char* mqttUsername = "AlexMari";      // Username Adafruit IO
+const char* mqttPassword = "your-key";
+const char* mqttTopic = "AlexMari/feeds/test-esp32-data";       // Topic-ul feed-ului
 
 // Obiecte WiFi și MQTT
 WiFiClient espClient;
@@ -70,9 +72,11 @@ void loop() {
 
 void connectToMQTTBroker() {
   while (!client.connected()) {
-    Serial.println("Se conectează la brokerul MQTT...");
-    if (client.connect("ESP32Client")) {
-      Serial.println("Conectat la brokerul MQTT!");
+    Serial.println("Se conectează la brokerul MQTT Adafruit IO...");
+    String clientId = "ESP32Client-" + String(WiFi.macAddress());
+    if (client.connect(clientId.c_str(), mqttUsername, mqttPassword)) {
+      Serial.println("Conectat la brokerul MQTT Adafruit IO!");
+      client.subscribe(mqttTopic); // Abonează-te la topic
     } else {
       Serial.print("Eroare de conectare, cod: ");
       Serial.println(client.state());

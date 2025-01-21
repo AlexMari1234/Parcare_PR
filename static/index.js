@@ -8,9 +8,14 @@ let totalFreeTime = [0, 0, 0];
 let totalOccupiedTime = [0, 0, 0];
 
 document.addEventListener("DOMContentLoaded", () => {
-    setInterval(fetchData, 500); // Solicită date la fiecare 500 ms
-    setInterval(updateTimes, 1000); // Actualizează timpul liber/ocupat la fiecare secundă
+    setInterval(updateEverything, 1000); // Actualizare sincronizată la fiecare secundă
 });
+
+// Funcția principală care gestionează toate actualizările
+function updateEverything() {
+    fetchData(); // Solicită date de la server
+    updateTimes(); // Actualizează timpul liber/ocupat
+}
 
 function fetchData() {
     fetch('/data')
@@ -55,7 +60,8 @@ function updateParkingLots(data) {
         if (isOccupied && lastLedStates[index] === 0) {
             addNotification(`${lot} a devenit ocupat.`);
         } else if (!isOccupied && lastLedStates[index] === 1) {
-            finalOccupancyTimes[index] = lastOccupancyTimes[index]; // Reține ultima valoare
+            // Adăugăm 2 secunde la timpul final pentru notificare
+            finalOccupancyTimes[index] = lastOccupancyTimes[index] + 2; // Offset pentru delay
             addNotification(`${lot} a fost ocupat timp de ${finalOccupancyTimes[index]} secunde.`);
         }
 

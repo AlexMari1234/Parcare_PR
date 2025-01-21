@@ -5,10 +5,12 @@ from flask import Flask, render_template, jsonify, make_response
 # Configurație Flask
 app = Flask(__name__)
 
-# Configurație MQTT
-broker = "localhost"  # Adresa IP a brokerului MQTT (rulat local)
-port = 1883
-topic = "test/esp32/data"
+# Configurație MQTT (Adafruit IO)
+broker = "io.adafruit.com"  # Adresa brokerului Adafruit IO
+port = 1883  # Portul pentru conexiuni non-secure
+mqtt_username = "AlexMari"  # Username Adafruit IO
+mqtt_password = "your-key"
+topic = f"{mqtt_username}/feeds/test-esp32-data"  # Feed-ul Adafruit IO
 
 # Stare curentă a datelor
 current_state = {"free_spots": None, "occupancy_times": [0, 0, 0], "led_states": [0, 0, 0]}
@@ -27,14 +29,23 @@ def on_message(client, userdata, msg):
     try:
         payload = msg.payload.decode()
         print(f"[{msg.topic}] {payload}")
+        
+        # Verificare pentru mesaje de tip "parcare plină"
+        if "Parking full" in payload:
+            print("Notificare: Parcarea este plină.")
+            return
+        
         # Parsează JSON-ul primit
         data = json.loads(payload.split(" ", 1)[1])  # Ignoră ID-ul și parsează JSON-ul
         current_state = data
+    except json.JSONDecodeError:
+        print("Eroare: JSON invalid.")
     except Exception as e:
         print(f"Eroare la procesarea mesajului: {e}")
 
 # Configurare client MQTT
 mqtt_client = mqtt.Client("PythonClient")
+mqtt_client.username_pw_set(mqtt_username, mqtt_password)  # Setare utilizator și parolă
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
 mqtt_client.connect(broker, port, 60)
@@ -56,6 +67,6 @@ def get_data():
     return make_response("", 204)
 
 if __name__ == '__main__':
-    # Load SSL context
+    # Pornire server Flask pe HTTPS
     context = ('cert.pem', 'key.pem')  # Certificatul și cheia privată
     app.run(ssl_context=context, host='0.0.0.0', port=443)  # HTTPS pe portul 443
