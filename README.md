@@ -34,9 +34,10 @@ Proiectul isi propune sa rezolve problema gestionarii eficiente a accesului si a
 
 ### Componente hardware
 
-1. **ESP32**: Microcontroller principal pentru conectivitate Wi-Fi si comunicare MQTT.
-2. **Arduino Uno**: Gestionarea senzorilor ultrasonici si a actuatorilor.
-3. **Senzori Ultrasonici HC-SR04**: Detecteaza ocuparea locurilor de parcare.
+1. **ESP32**: Microcontroller principal pentru conectivitate Wi-Fi și comunicare MQTT.
+   - **Detalii adiționale**: Implementarea conexiunii MQTT utilizează brokerul public Adafruit IO. Conexiunea se face pe un topic specific folosind un nume de utilizator și o cheie de autentificare unică (API Key). Aceasta permite publicarea și abonarea la mesaje în timp real fără rate limit (spre deosebire de brokerul test.mosquitto.org, care avea limitări stricte). Inițial, sistemul a fost configurat să funcționeze cu un broker local (192.168.0.21), dar după o serie de probleme tehnice și sesiuni extinse de debugging, implementarea a fost migrată pe Adafruit IO pentru o soluție mai stabilă.
+2. **Arduino Uno**: Gestionarea senzorilor ultrasonici și a actuatorilor.
+3. **Senzori Ultrasonici HC-SR04**: Detectează ocuparea locurilor de parcare.
    - **Senzor 1**:
      - Trig -> Pin digital 7
      - Echo -> Pin digital 8
@@ -46,7 +47,7 @@ Proiectul isi propune sa rezolve problema gestionarii eficiente a accesului si a
    - **Senzor 3**:
      - Trig -> Pin analogic A2
      - Echo -> Pin analogic A3
-   - Toti senzorii:
+   - Toți senzorii:
      - VCC -> 5V
      - GND -> GND
 4. **RFID MFRC-522**: Permite autentificarea utilizatorilor prin UID-ul cardurilor RFID.
@@ -57,7 +58,7 @@ Proiectul isi propune sa rezolve problema gestionarii eficiente a accesului si a
    - RST -> Pin digital 9
    - VCC -> 3.3V
    - GND -> GND
-5. **Servo Motor SG90**: Controleaza bariera de acces.
+5. **Servo Motor SG90**: Controlează bariera de acces.
    - Control -> Pin digital 3 (PWM)
    - VCC -> 5V
    - GND -> GND
@@ -72,31 +73,73 @@ Proiectul isi propune sa rezolve problema gestionarii eficiente a accesului si a
    - LED 3: Anod -> Pin digital 6, Catod -> GND prin rezistor de 220Ω
 8. **Buton manual**:
    - Un pin al butonului -> GND
-   - Celalalt pin al butonului -> Pin digital 2 (cu un rezistor pull-up de 10kΩ la 5V).
+   - Celălalt pin al butonului -> Pin digital 2 (cu un rezistor pull-up de 10kΩ la 5V).
 
 ### Diagrama conexiunilor hardware
-Adaugarea acestei diagrame poate ajuta la o mai buna vizualizare a conexiunilor fizice. Vom include o diagrama ilustrativa care arata cum sunt conectate modulele la Arduino si ESP32.
+Adaugarea acestei diagrame poate ajuta la o mai buna vizualizare a conexiunilor fizice. Vom include o diagrama ilustrativa care arata cum sunt conectate modulele la Arduino si ESP32:
+
+- **ESP32**:
+  - Alimentare: 3.3V/GND.
+  - Conexiune UART cu Arduino:
+    - RX (ESP32) -> TX (Arduino).
+    - TX (ESP32) -> RX (Arduino).
+  - Comunicare MQTT prin Wi-Fi pentru conectarea la backend utilizand brokerul Adafruit IO.
+
+- **Arduino Uno**:
+  - Alimentare: 5V/GND.
+  - Conexiuni cu senzori, LED-uri si alte componente:
+    - Senzori ultrasonici HC-SR04 (detalii de conectare in sectiunea hardware).
+    - Controlul LED-urilor si afisajului LCD prin pini digitali.
+
+- **Senzori ultrasonici**: Detecteaza distanta si ofera date de ocupare pentru fiecare loc de parcare.
+  - Trig si Echo conectate la pinii specifici de pe Arduino (detalii in sectiunea hardware).
+
+- **RFID MFRC-522**: Gestionarea accesului prin UID-ul cardurilor RFID.
+  - Pinii pentru conexiuni SPI (SCK, MOSI, MISO, SDA, RST) legati la Arduino.
 
 ### Topologia retelei
 Sistemul urmeaza o arhitectura de tip stea:
-- **ESP32** ca nod central conectat la backend.
-- **Backend Python** gazduit local sau in cloud pentru procesarea datelor.
-- **Frontend web** pentru vizualizare.
 
-### Protocoale de comunicatie
-1. **MQTT**: Utilizat pentru comunicare eficienta in timp real intre ESP32 si backend.
-2. **HTTPS**: Protejeaza datele transmise intre frontend si backend.
-3. **UART**: Comunica intre Arduino si ESP32 pentru schimb de date hardware.
+- **ESP32**:
+  - Actioneaza ca nod central responsabil pentru procesarea datelor de la Arduino si trimiterea lor catre backend.
+
+- **Backend Python**:
+  - Gazduit local sau in cloud.
+  - Rol principal in procesarea datelor si expunerea acestora printr-un API pentru frontend.
+
+- **Frontend web**:
+  - Permite utilizatorilor sa vizualizeze starea locurilor de parcare in timp real.
+
+### Protocoale de comunicare
+1. **MQTT**:
+   - Utilizat pentru comunicare eficienta intre ESP32 si backend.
+   - Mesajele sunt publicate si abonate pe un topic dedicat.
+   - Brokerul MQTT utilizat este **Adafruit IO**, care permite conectarea pe un topic specific cu ajutorul unui nume de utilizator si a unei chei unice de autentificare (API Key). Acest broker ofera stabilitate si permite publicarea de mesaje in timp real fara rate limit, spre deosebire de test.mosquitto.org care avea limitari stricte. Initial, sistemul a functionat pe un broker local (192.168.0.21), dar din cauza unor probleme tehnice si debug complex, s-a optat pentru migrarea la Adafruit IO.
+
+2. **HTTPS**:
+   - Asigura securitatea datelor transmise intre frontend si backend.
+
+3. **UART**:
+   - Protocol serial utilizat intre ESP32 si Arduino pentru schimb de date hardware in timp real.
 
 ### Detalii despre comunicarea seriala (UART)
 ESP32 si Arduino comunica prin pinii RX si TX:
-- RX (ESP32) -> TX (Arduino)
-- TX (ESP32) -> RX (Arduino)
-- Baud Rate: 9600 bps
-- Date transmise: JSON care include:
-  - Numarul de locuri libere.
-  - Timpul total ocupat pentru fiecare loc.
-  - Starea LED-urilor (0 pentru liber, 1 pentru ocupat).
+
+- **Conexiuni fizice**:
+  - RX (ESP32) -> TX (Arduino).
+  - TX (ESP32) -> RX (Arduino).
+
+- **Setari**:
+  - Baud Rate: 9600 bps.
+  - Configuratie: 8N1 (8 biti de date, fara bit de paritate, 1 bit de stop).
+
+- **Structura datelor transmise**:
+  - Datele sunt transmise sub forma de JSON, care include urmatoarele campuri:
+    - **free_spots**: Numarul de locuri libere disponibile.
+    - **occupancy_times**: Vector cu timpul total ocupat pentru fiecare loc in secunde.
+    - **led_states**: Vector care indica starea LED-urilor (0 pentru liber, 1 pentru ocupat).
+
+Aceasta abordare asigura o actualizare eficienta si sincronizata a informatiilor intre componentele hardware si backend.
 
 ---
 
